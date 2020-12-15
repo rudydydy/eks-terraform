@@ -3,6 +3,10 @@ variable "aws_region" {
   type        = string
 }
 
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+}
 
 # ECR reference: 
 # - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository

@@ -13,6 +13,9 @@ terraform {
   }
 }
 
+# ECR resources
+# - Registry
+# - Lifecycle Policy (TODO)
 module "project_ecr" {
   source   = "./modules/project_ecr"
   for_each = var.project
@@ -20,4 +23,14 @@ module "project_ecr" {
   repository_name      = "${each.key}-registry"
   image_tag_mutability = each.value.image_tag_mutability
   scan_on_push         = each.value.scan_on_push
+}
+
+# VPC Resources
+# - VPC
+# - Subnet
+# - IGW
+# - Route table
+module "cluster_vpc" {
+  source       = "./modules/cluster_vpc"
+  cluster_name = var.cluster_name 
 }
