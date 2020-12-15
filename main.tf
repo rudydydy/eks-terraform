@@ -29,6 +29,7 @@ module "project_ecr" {
 # - VPC
 # - Subnet
 # - IGW
+# - NAT
 # - Route table
 module "cluster_vpc" {
   source       = "./modules/cluster_vpc"
