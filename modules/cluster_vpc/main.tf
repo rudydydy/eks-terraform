@@ -21,29 +21,33 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public" {
-	count                   = local.az_count
-	availability_zone       = local.az_names[count.index] 
-	cidr_block              = "10.0.${count.index * 16}.0/20"
-	vpc_id                  = aws_vpc.main.id
-	map_public_ip_on_launch = true
+  count                   = local.az_count
+  availability_zone       = local.az_names[count.index] 
+  cidr_block              = "10.0.${count.index * 16}.0/20"
+  vpc_id                  = aws_vpc.main.id
+  map_public_ip_on_launch = true
 
-	tags = {
+  tags = {
     "Name"                                      = "${var.cluster_name}-public-${local.az_ids[count.index]}"
-		"kubernetes.io/cluster/${var.cluster_name}" = "shared"
-	}
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    # reference: https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html#vpc-subnet-tagging
+    "kubernetes.io/role/elb"                    = "1"
+  }
 }
 
 resource "aws_subnet" "private" {
-	count                   = local.az_count
-	availability_zone       = local.az_names[count.index] 
-	cidr_block              = "10.0.${(local.az_count + count.index)  * 16}.0/20"
-	vpc_id                  = aws_vpc.main.id
-	map_public_ip_on_launch = false
+  count                   = local.az_count
+  availability_zone       = local.az_names[count.index] 
+  cidr_block              = "10.0.${(local.az_count + count.index)  * 16}.0/20"
+  vpc_id                  = aws_vpc.main.id
+  map_public_ip_on_launch = false
 
-	tags = {
+  tags = {
     "Name"                                      = "${var.cluster_name}-private-${local.az_ids[count.index]}"
-		"kubernetes.io/cluster/${var.cluster_name}" = "shared"
-	}
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    # reference: https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html#vpc-subnet-tagging
+    "kubernetes.io/role/internal-elb"           = "1"
+  }
 }
 
 resource "aws_internet_gateway" "main" {
