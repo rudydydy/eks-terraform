@@ -42,6 +42,11 @@ data "aws_vpc" "selected" {
   }
 }
 
+data "aws_subnet_ids" "selected" {
+  count = var.vpc_name == "" ? 0 : 1
+  vpc_id = data.aws_vpc.selected[0].id
+}
+
 module "cluster_vpc" {
   count        = var.vpc_name == "" ? 1 : 0
   source       = "./modules/cluster_vpc"
@@ -52,7 +57,7 @@ module "cluster_vpc" {
 ################################################################################
 # EKS Cluster (Control Plane)
 ################################################################################
-module "cluster_control_plane" {
-  source       = "./modules/cluster_control_plane"
-  cluster_name = var.cluster_name
-}
+# module "cluster_control_plane" {
+#   source       = "./modules/cluster_control_plane"
+#   cluster_name = var.cluster_name
+# }
