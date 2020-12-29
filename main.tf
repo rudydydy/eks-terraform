@@ -46,4 +46,13 @@ module "cluster_vpc" {
   count        = var.vpc_name == "" ? 1 : 0
   source       = "./modules/cluster_vpc"
   cluster_name = var.cluster_name 
+  cidr_block   = var.new_vpc_cidr_block
+}
+
+################################################################################
+# EKS Cluster (Control Plane)
+################################################################################
+module "cluster_control_plane" {
+  source       = "./modules/cluster_control_plane"
+  cluster_name = var.cluster_name
 }

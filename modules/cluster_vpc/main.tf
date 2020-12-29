@@ -9,10 +9,11 @@ locals {
     for i in data.aws_availability_zones.available.names:
     replace(i, data.aws_availability_zones.available.id, "")
   ]
+  cidr_prefix = join(".", slice(split(".", var.cidr_block), 0, 2))
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.cidr_block
 
   tags = {
     "Name"                                      = "${var.cluster_name}-vpc"
@@ -23,7 +24,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   count                   = local.az_count
   availability_zone       = local.az_names[count.index] 
-  cidr_block              = "10.0.${count.index * 16}.0/20"
+  cidr_block              = "${local.cidr_prefix}.${count.index * 16}.0/20"
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = true
 
@@ -38,7 +39,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count                   = local.az_count
   availability_zone       = local.az_names[count.index] 
-  cidr_block              = "10.0.${(local.az_count + count.index)  * 16}.0/20"
+  cidr_block              = "${local.cidr_prefix}.${(local.az_count + count.index)  * 16}.0/20"
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = false
 
@@ -75,7 +76,7 @@ resource "aws_route_table" "public" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
+    gateway_id     = aws_internet_gateway.main.id
   }
 }
 
