@@ -21,6 +21,18 @@ variable cluster_public_access_cidrs {
   default     = ["35.201.197.198/32"]
 }
 
+variable endpoint_private_access {
+  description = "Indicates whether or not the Amazon EKS private API server endpoint is enabled. Default is false"
+  type        = bool
+  default     = false
+}
+
+variable endpoint_public_access {
+  description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled. Default is true"
+  type        = bool
+  default     = true
+}
+
 ################################################################################
 # EKS Node Group
 # - reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group
@@ -30,7 +42,7 @@ variable worker_nodes {
   description = "Map of worker nodes managed by EKS cluster"
   type        = map
   default     = {
-    main = {
+    web = {
       subnet_type = "private"
       instance_types = ["t3.small"]
       capacity_type = "SPOT",
@@ -42,10 +54,28 @@ variable worker_nodes {
         min_size = 1
       }
       kubernetes_labels = {
-        "project": "web"
+        "service": "web"
       }
       tags = {
         "service": "web"
+      }
+    },
+    loadbalancer = {
+      subnet_type = "public"
+      instance_types = ["t3.small"]
+      capacity_type = "SPOT",
+      disk_size = 10,
+      force_update_version = false,
+      scaling_config = {
+        desired_size = 2
+        max_size = 3
+        min_size = 1
+      }
+      kubernetes_labels = {
+        "service": "loadbalancer"
+      }
+      tags = {
+        "service": "loadbalancer"
       }
     }
   }
@@ -81,6 +111,12 @@ variable new_vpc_cidr_block {
 # if you decide to use existing vpc already created, then please override below variables default value
 # also consider reading below docs https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
 # in summary, EKS need your subnets to include custom tagging
+variable vpc_id {
+  description = "AWS VPC id"
+  type        = string
+  default     = ""
+}
+
 variable cluster_subnet_ids {
   description = "(Optional) List of EKS cluster subnet ids"
   type        = list

@@ -36,11 +36,11 @@ module "project_ecr" {
 # - Route table
 ################################################################################
 locals {
-  empty_cluster_subnet_ids = length(var.cluster_subnet_ids) == 0
+  blank_vpc_id = var.vpc_id == ""
 }
 
 module "cluster_vpc" {
-  count        = local.empty_cluster_subnet_ids ? 1 : 0
+  count        = local.blank_vpc_id ? 1 : 0
   source       = "./modules/cluster_vpc"
   cluster_name = var.cluster_name 
   cidr_block   = var.new_vpc_cidr_block
@@ -50,10 +50,11 @@ module "cluster_vpc" {
 # EKS Cluster (Control Plane)
 ################################################################################
 locals {
-  cluster_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].all_subnet_ids : var.cluster_subnet_ids
-  cluster_public_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].public_subnet_ids : var.cluster_public_subnet_ids
-  cluster_private_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].private_subnet_ids : var.cluster_private_subnet_ids
-  cluster_vpc_nat_eip = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].nat_eip : "use existing vpc"
+  cluster_vpc_id             = local.blank_vpc_id ? module.cluster_vpc[0].vpc_id : var.vpc_id
+  cluster_subnet_ids         = local.blank_vpc_id ? module.cluster_vpc[0].all_subnet_ids : var.cluster_subnet_ids
+  cluster_public_subnet_ids  = local.blank_vpc_id ? module.cluster_vpc[0].public_subnet_ids : var.cluster_public_subnet_ids
+  cluster_private_subnet_ids = local.blank_vpc_id ? module.cluster_vpc[0].private_subnet_ids : var.cluster_private_subnet_ids
+  cluster_vpc_nat_eip        = local.blank_vpc_id ? module.cluster_vpc[0].nat_eip : "use existing vpc"
 }
 
 # NOTES: by default using all subnet ids
@@ -64,6 +65,7 @@ module "cluster_control_plane" {
   cluster_name        = var.cluster_name
   k8s_version         = var.k8s_version
   public_access_cidrs = var.cluster_public_access_cidrs
+  vpc_id              = local.cluster_vpc_id
   subnet_ids          = local.cluster_subnet_ids
 }
 
