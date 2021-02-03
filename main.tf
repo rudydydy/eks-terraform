@@ -66,8 +66,9 @@ locals {
 }
 
 module "cluster_control_plane" {
-  source       = "./modules/cluster_control_plane"
-  cluster_name = var.cluster_name
-  k8s_version  = var.k8s_version
-  subnet_ids   = local.cluster_subnet_ids
+  source              = "./modules/cluster_control_plane"
+  cluster_name        = var.cluster_name
+  k8s_version         = var.k8s_version
+  public_access_cidrs = var.cluster_public_access_cidrs
+  subnet_ids          = local.cluster_subnet_ids
 }

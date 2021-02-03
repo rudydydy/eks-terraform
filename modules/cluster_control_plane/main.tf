@@ -39,7 +39,8 @@ resource "aws_eks_cluster" "main" {
   role_arn        = aws_iam_role.control_plane.arn
 
   vpc_config {
-    subnet_ids = var.subnet_ids
+    subnet_ids          = var.subnet_ids
+    public_access_cidrs = var.public_access_cidrs
   }
 
   depends_on = [

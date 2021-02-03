@@ -14,6 +14,13 @@ variable k8s_version {
   type        = string
 }
 
+variable cluster_public_access_cidrs {
+  description = "List of CIDR blocks. Indicates which CIDR blocks can access the Amazon EKS public API server endpoint when enabled. EKS defaults this to a list with 0.0.0.0/0"
+  type        = list
+  # default     = ["0.0.0.0/0"]
+  default     = ["35.201.197.198/32"]
+}
+
 ################################################################################
 # ECR Variable (Optional)
 # - reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository
