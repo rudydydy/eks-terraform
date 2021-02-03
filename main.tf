@@ -35,20 +35,12 @@ module "project_ecr" {
 # - NAT
 # - Route table
 ################################################################################
-data "aws_vpc" "selected" {
-  count = var.vpc_name == "" ? 0 : 1
-  tags  = {
-    "Name" = var.vpc_name
-  }
-}
-
-data "aws_subnet_ids" "selected" {
-  count = var.vpc_name == "" ? 0 : 1
-  vpc_id = data.aws_vpc.selected[0].id
+locals {
+  empty_cluster_subnet_ids = length(var.cluster_subnet_ids) == 0
 }
 
 module "cluster_vpc" {
-  count        = var.vpc_name == "" ? 1 : 0
+  count        = local.empty_cluster_subnet_ids ? 1 : 0
   source       = "./modules/cluster_vpc"
   cluster_name = var.cluster_name 
   cidr_block   = var.new_vpc_cidr_block
@@ -58,11 +50,10 @@ module "cluster_vpc" {
 # EKS Cluster (Control Plane)
 ################################################################################
 locals {
-  cluster_vpc_id = var.vpc_name == "" ? module.cluster_vpc[0].vpc_id : data.aws_vpc.selected[0].id
-  cluster_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].all_subnet_ids : data.aws_subnet_ids.selected[0].ids
-  cluster_public_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].public_subnet_ids : ["use existing vpc"]
-  cluster_private_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].private_subnet_ids : ["use existing vpc"]
-  cluster_vpc_nat_eip = var.vpc_name == "" ? module.cluster_vpc[0].nat_eip : "use existing vpc"
+  cluster_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].all_subnet_ids : var.cluster_subnet_ids
+  cluster_public_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].public_subnet_ids : var.cluster_public_subnet_ids
+  cluster_private_subnet_ids = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].private_subnet_ids : var.cluster_private_subnet_ids
+  cluster_vpc_nat_eip = local.empty_cluster_subnet_ids ? module.cluster_vpc[0].nat_eip : "use existing vpc"
 }
 
 # NOTES: by default using all subnet ids
@@ -74,4 +65,20 @@ module "cluster_control_plane" {
   k8s_version         = var.k8s_version
   public_access_cidrs = var.cluster_public_access_cidrs
   subnet_ids          = local.cluster_subnet_ids
+}
+
+################################################################################
+# EKS Cluster (Worker Nodes)
+################################################################################
+module "cluster_worker_nodes" {
+  source             = "./modules/cluster_worker_nodes"
+  public_subnet_ids  = local.cluster_public_subnet_ids
+  private_subnet_ids = local.cluster_private_subnet_ids
+  cluster_name       = var.cluster_name
+  k8s_version        = var.k8s_version
+  worker_nodes       = var.worker_nodes
+
+  depends_on = [
+    module.cluster_control_plane
+  ]
 }

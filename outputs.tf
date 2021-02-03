@@ -1,14 +1,9 @@
 output project_ecr_url {
-  description = "List created AWS ECR, outputting project name and repository url"
+  description = "Map of created AWS ECR, outputting project name and repository url"
   value       = {
-    for p in sort(keys(var.ecr_projects)) :
+    for p in keys(var.ecr_projects) :
     p => module.project_ecr[p].ecr_url
   }
-}
-
-output vpc_id {
-  description = "VPC id created"
-  value       = local.cluster_vpc_id
 }
 
 output all_subnet_ids {
@@ -39,4 +34,9 @@ output cluster_endpoint {
 output cluster_certificate_authority_data {
   description = "The base64 encoded certificate data required to communicate with your cluster. Add this to the certificate-authority-data section of the kubeconfig file for your cluster."
   value       = module.cluster_control_plane.certificate_authority_data
+}
+
+output worker_node_ids {
+  description = "Map of created worker nodes in the cluster, return worker node name and id"
+  value       = module.cluster_worker_nodes.ids
 }

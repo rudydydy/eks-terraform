@@ -22,6 +22,36 @@ variable cluster_public_access_cidrs {
 }
 
 ################################################################################
+# EKS Node Group
+# - reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group
+# - map type variable, key is worker node name and inside key is that worker node configuration setting
+################################################################################
+variable worker_nodes {
+  description = "Map of worker nodes managed by EKS cluster"
+  type        = map
+  default     = {
+    main = {
+      subnet_type = "private"
+      instance_types = ["t3.small"]
+      capacity_type = "SPOT",
+      disk_size = 10,
+      force_update_version = false,
+      scaling_config = {
+        desired_size = 2
+        max_size = 3
+        min_size = 1
+      }
+      kubernetes_labels = {
+        "project": "web"
+      }
+      tags = {
+        "service": "web"
+      }
+    }
+  }
+}
+
+################################################################################
 # ECR Variable (Optional)
 # - reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository
 # - map type variable, key is ECR repository name and inside key is that repository configuration setting
@@ -33,10 +63,6 @@ variable ecr_projects {
     alpha = {
       image_tag_mutability = "MUTABLE",
       scan_on_push         = false
-    },
-    beta = {
-      image_tag_mutability = "IMMUTABLE",
-      scan_on_push         = true
     }
   }
 }
@@ -52,11 +78,23 @@ variable new_vpc_cidr_block {
   default     = "10.0.0.0/16" 
 }
 
-# if you decide to use existing vpc already created, then consider reading below docs
-# https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
+# if you decide to use existing vpc already created, then please override below variables default value
+# also consider reading below docs https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
 # in summary, EKS need your subnets to include custom tagging
-variable vpc_name {
-  description = "(Optional) VPC name already exist in your AWS account, ex: 'default'"
-  type        = string
-  default     = ""
+variable cluster_subnet_ids {
+  description = "(Optional) List of EKS cluster subnet ids"
+  type        = list
+  default     = []
+}
+
+variable cluster_public_subnet_ids {
+  description = "(Optional) List of EKS cluster public subnet ids"
+  type        = list
+  default     = []
+}
+
+variable cluster_private_subnet_ids {
+  description = "(Optional) List of EKS cluster private subnet ids"
+  type        = list
+  default     = []
 }
