@@ -57,7 +57,17 @@ module "cluster_vpc" {
 ################################################################################
 # EKS Cluster (Control Plane)
 ################################################################################
-# module "cluster_control_plane" {
-#   source       = "./modules/cluster_control_plane"
-#   cluster_name = var.cluster_name
-# }
+locals {
+  cluster_vpc_id = var.vpc_name == "" ? module.cluster_vpc[0].vpc_id : data.aws_vpc.selected[0].id
+  cluster_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].all_subnet_ids : data.aws_subnet_ids.selected[0].ids
+  cluster_public_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].public_subnet_ids : ["use existing vpc"]
+  cluster_private_subnet_ids = var.vpc_name == "" ? module.cluster_vpc[0].private_subnet_ids : ["use existing vpc"]
+  cluster_vpc_nat_eip = var.vpc_name == "" ? module.cluster_vpc[0].nat_eip : "use existing vpc"
+}
+
+module "cluster_control_plane" {
+  source       = "./modules/cluster_control_plane"
+  cluster_name = var.cluster_name
+  k8s_version  = var.k8s_version
+  subnet_ids   = local.cluster_subnet_ids
+}

@@ -1,10 +1,16 @@
-variable "aws_region" {
+variable aws_region {
   description = "Your aws region preference"
   type        = string
 }
 
-variable "cluster_name" {
+variable cluster_name {
   description = "EKS cluster name"
+  type        = string
+}
+
+# reference: https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html
+variable k8s_version {
+  description = "kubernetes version"
   type        = string
 }
 
@@ -39,6 +45,9 @@ variable new_vpc_cidr_block {
   default     = "10.0.0.0/16" 
 }
 
+# if you decide to use existing vpc already created, then consider reading below docs
+# https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
+# in summary, EKS need your subnets to include custom tagging
 variable vpc_name {
   description = "(Optional) VPC name already exist in your AWS account, ex: 'default'"
   type        = string
