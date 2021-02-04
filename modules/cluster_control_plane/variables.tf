@@ -32,3 +32,8 @@ variable endpoint_public_access {
   description = "Indicates whether or not the Amazon EKS public API server endpoint is enabled"
   type        = bool
 }
+
+variable cluster_tags {
+  description = "EKS tags"
+  type        = map
+}

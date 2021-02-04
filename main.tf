@@ -61,12 +61,15 @@ locals {
 # reference: https://docs.aws.amazon.com/eks/latest/userguide/network_reqs.html
 # in summary AWS, recommend to  VPC with public and private subnets so that Kubernetes can create public load balancers in the public subnets that load balance traffic to pods running on nodes that are in private subnets
 module "cluster_control_plane" {
-  source              = "./modules/cluster_control_plane"
-  cluster_name        = var.cluster_name
-  k8s_version         = var.k8s_version
-  public_access_cidrs = var.cluster_public_access_cidrs
-  vpc_id              = local.cluster_vpc_id
-  subnet_ids          = local.cluster_subnet_ids
+  source                  = "./modules/cluster_control_plane"
+  cluster_name            = var.cluster_name
+  k8s_version             = var.k8s_version
+  public_access_cidrs     = var.cluster_public_access_cidrs
+  endpoint_private_access = var.endpoint_private_access
+  endpoint_public_access  = var.endpoint_public_access
+  cluster_tags            = var.cluster_tags
+  vpc_id                  = local.cluster_vpc_id
+  subnet_ids              = local.cluster_subnet_ids
 }
 
 ################################################################################

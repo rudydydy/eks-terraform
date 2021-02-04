@@ -17,8 +17,7 @@ variable k8s_version {
 variable cluster_public_access_cidrs {
   description = "List of CIDR blocks. Indicates which CIDR blocks can access the Amazon EKS public API server endpoint when enabled. EKS defaults this to a list with 0.0.0.0/0"
   type        = list
-  # default     = ["0.0.0.0/0"]
-  default     = ["35.201.197.198/32"]
+  default     = ["0.0.0.0/0"]
 }
 
 variable endpoint_private_access {
@@ -33,6 +32,12 @@ variable endpoint_public_access {
   default     = true
 }
 
+variable cluster_tags {
+  description = "EKS tags"
+  type        = map
+  default     = {}
+}
+
 ################################################################################
 # EKS Node Group
 # - reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group
@@ -43,6 +48,8 @@ variable worker_nodes {
   type        = map
   default     = {
     web = {
+      # set your node group instances subnet, if you need static public ip then consider using private subnet (NAT)
+      # NOTE: beware of data transfer cost
       subnet_type = "private"
       instance_types = ["t3.small"]
       capacity_type = "SPOT",
